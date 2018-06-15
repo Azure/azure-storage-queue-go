@@ -17,12 +17,12 @@ This repository contains the open source Queue SDK for Go.
 ```go get github.com/Azure/azure-storage-queue-go/2017-07-29/azqueue```
 		
 ## SDK Architecture
-
-* The Azure Storage SDK for Go provides APIs that map 1-to-1 with the Azure Storage Queue REST APIs via
- the ServiceURL, QueueURL, MessagesURL, and MessageIDURL types [Azure Storage Queue REST APIs](https://docs.microsoft.com/en-us/rest/api/storageservices/queue-service-rest-api)
+* The Azure Storage SDK for Go provides APIs that map 1-to-1 with the 
+[Azure Storage Queue REST APIs](https://docs.microsoft.com/en-us/rest/api/storageservices/queue-service-rest-api) via
+ the ServiceURL, QueueURL, MessagesURL, and MessageIDURL types.
 
 ## Code Samples
-* [Queue Storage Examples](https://godoc.org/github.com/Azure/azure-storage-blob-go/2017-07-29/azqueue#pkg-examples)
+* [Queue Storage Examples](https://godoc.org/github.com/Azure/azure-storage-queue-go/2017-07-29/azqueue#pkg-examples)
 
 ## License
 This project is licensed under MIT.
