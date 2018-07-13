@@ -2,7 +2,6 @@ package azqueue_test
 
 import (
     "testing"
-    "io"
     chk "gopkg.in/check.v1"
 )
 
@@ -12,12 +11,6 @@ func Test(t *testing.T) { chk.TestingT(t) }
 type QueueSuite struct{}
 
 var _ = chk.Suite(&QueueSuite{})
-
-func (s *QueueSuite) TestHelloWorld(c *chk.C) {
-    c.Assert(42, chk.Equals, "42")
-    c.Assert(io.ErrClosedPipe, chk.ErrorMatches, "io: .*on closed pipe")
-    c.Check(42, chk.Equals, 42)
-}
 
 /*
 import (

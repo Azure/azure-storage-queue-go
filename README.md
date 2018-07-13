@@ -1,5 +1,5 @@
 # Azure Storage Queue SDK for Go
-[![GoDoc Widget]][GoDoc]
+[![GoDoc Widget]][GoDoc] [![Build Status][Travis Widget]][Travis]
 
 The Microsoft Azure Storage SDK for Go allows you to build applications that takes advantage of Azure's scalable cloud storage. 
 
@@ -42,3 +42,5 @@ contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additio
 
 [GoDoc]: https://godoc.org/github.com/Azure/azure-storage-queue-go/2017-07-29/azqueue
 [GoDoc Widget]: https://godoc.org/github.com/Azure/azure-storage-queue-go/2017-07-29/azqueue?status.svg
+[Travis]: https://travis-ci.org/Azure/azure-storage-queue-go
+[Travis Widget]: https://travis-ci.org/Azure/azure-storage-queue-go.svg?branch=master
