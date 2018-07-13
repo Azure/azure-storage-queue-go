@@ -1,0 +1,12 @@
+version: '3'
+services:
+  azure-storage-queue-go:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+    - .:${WORK_DIR}
+    working_dir: ${WORK_DIR}
+    environment:
+      - ACCOUNT_NAME
+      - ACCOUNT_KEY
