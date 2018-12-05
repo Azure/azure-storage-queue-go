@@ -81,11 +81,12 @@ func newDefaultHTTPClient() *http.Client {
 	}
 }
 
+var pipelineHTTPClient = newDefaultHTTPClient()
 
 func newDefaultHTTPClientFactory() pipeline.Factory {
 	return pipeline.FactoryFunc(func(next pipeline.Policy, po *pipeline.PolicyOptions) pipeline.PolicyFunc {
 		return func(ctx context.Context, request pipeline.Request) (pipeline.Response, error) {
-			r, err := newDefaultHTTPClient().Do(request.WithContext(ctx))
+			r, err := pipelineHTTPClient.Do(request.WithContext(ctx))
 			if err != nil {
 				err = pipeline.NewError(err, "HTTP request failed")
 			}
