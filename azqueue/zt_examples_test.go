@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-pipeline-go/pipeline"
-	"github.com/Azure/azure-storage-queue-go/2017-07-29/azqueue"
+	"github.com/Azure/azure-storage-queue-go/azqueue"
 	"net/http"
 	"strconv"
 )
@@ -37,7 +37,7 @@ func Example() {
 
 	// From the Azure portal, get your Storage account queue service URL endpoint.
 	// The URL typically looks like this:
-	u, _ := url.Parse(fmt.Sprintf("http://%s.queue.core.windows.net", accountName))
+	u, _ := url.Parse(fmt.Sprintf("https://%s.queue.core.windows.net", accountName))
 
 	// Create an ServiceURL object that wraps the service URL and a request pipeline.
 	serviceURL := azqueue.NewServiceURL(*u, p)
@@ -261,7 +261,7 @@ func ExampleStorageError() {
 	//    richer information such as a service error code, an error description, details data, and the
 	//    service-returned http.Response. And, from the http.Response, you can get the initiating http.Request.
 
-	u, _ := url.Parse("http://myaccount.queue.core.windows.net/queue2") // Assumes the 'myaccount' storage account exists
+	u, _ := url.Parse("https://myaccount.queue.core.windows.net/queue2") // Assumes the 'myaccount' storage account exists
 	queueURL := azqueue.NewQueueURL(*u, azqueue.NewPipeline(azqueue.NewAnonymousCredential(), azqueue.PipelineOptions{}))
 	create, err := queueURL.Create(context.Background(), azqueue.Metadata{})
 
