@@ -2,15 +2,17 @@ package azqueue
 
 import (
 	"context"
+	"errors"
+	"io"
+	"io/ioutil"
 	"math/rand"
 	"net"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-pipeline-go/pipeline"
-	"io/ioutil"
-	"io"
 )
 
 // RetryPolicy tells the pipeline what kind of retry policy to use. See the RetryPolicy* constants.
@@ -59,21 +61,12 @@ func (o RetryOptions) retryReadsFromSecondaryHost() string {
 }
 
 func (o RetryOptions) defaults() RetryOptions {
-	if o.Policy != RetryPolicyExponential && o.Policy != RetryPolicyFixed {
-		panic("RetryPolicy must be RetryPolicyExponential or RetryPolicyFixed")
-	}
-	if o.MaxTries < 0 {
-		panic("MaxTries must be >= 0")
-	}
-	if o.TryTimeout < 0 || o.RetryDelay < 0 || o.MaxRetryDelay < 0 {
-		panic("TryTimeout, RetryDelay, and MaxRetryDelay must all be >= 0")
-	}
-	if o.RetryDelay > o.MaxRetryDelay {
-		panic("RetryDelay must be <= MaxRetryDelay")
-	}
-	if (o.RetryDelay == 0 && o.MaxRetryDelay != 0) || (o.RetryDelay != 0 && o.MaxRetryDelay == 0) {
-		panic("Both RetryDelay and MaxRetryDelay must be 0 or neither can be 0")
-	}
+	// We assume the following:
+	// 1. o.Policy should either be RetryPolicyExponential or RetryPolicyFixed
+	// 2. o.MaxTries >= 0
+	// 3. o.TryTimeout, o.RetryDelay, and o.MaxRetryDelay >=0
+	// 4. o.RetryDelay <= o.MaxRetryDelay
+	// 5. Both o.RetryDelay and o.MaxRetryDelay must be 0 or neither can be 0
 
 	IfDefault := func(current *time.Duration, desired time.Duration) {
 		if *current == time.Duration(0) {
@@ -168,9 +161,11 @@ func NewRetryPolicyFactory(o RetryOptions) pipeline.Factory {
 				// For each try, seek to the beginning of the Body stream. We do this even for the 1st try because
 				// the stream may not be at offset 0 when we first get it and we want the same behavior for the
 				// 1st try as for additional tries.
-				if err = requestCopy.RewindBody(); err != nil {
-					panic(err)
+				err = requestCopy.RewindBody()
+				if err != nil {
+					return nil, errors.New("we must be able to seek on the Body Stream, otherwise retries would cause data corruption")
 				}
+
 				if !tryingPrimary {
 					requestCopy.Request.URL.Host = o.retryReadsFromSecondaryHost()
 				}
@@ -214,9 +209,27 @@ func NewRetryPolicyFactory(o RetryOptions) pipeline.Factory {
 					considerSecondary = false
 					action = "Retry: Secondary URL returned 404"
 				case err != nil:
-					// NOTE: Protocol Responder returns non-nil if REST API returns invalid status code for the invoked operation
-					if netErr, ok := err.(net.Error); ok && (netErr.Temporary() || netErr.Timeout()) {
-						action = "Retry: net.Error and Temporary() or Timeout()"
+					// NOTE: Protocol Responder returns non-nil if REST API returns invalid status code for the invoked operation.
+					// Use ServiceCode to verify if the error is related to storage service-side,
+					// ServiceCode is set only when error related to storage service happened.
+					if stErr, ok := err.(StorageError); ok {
+						if stErr.Temporary() {
+							action = "Retry: StorageError with error service code and Temporary()"
+						} else if stErr.Response() != nil && isSuccessStatusCode(stErr.Response()) { // TODO: This is a temporarily work around, remove this after protocol layer fix the issue that net.Error is wrapped as storageError
+							action = "Retry: StorageError with success status code"
+						} else {
+							action = "NoRetry: StorageError not Temporary() and without retriable status code"
+						}
+					} else if netErr, ok := err.(net.Error); ok {
+						// Use non-retriable net.Error list, but not retriable list.
+						// As there are errors without Temporary() implementation,
+						// while need be retried, like 'connection reset by peer', 'transport connection broken' and etc.
+						// So the SDK do retry for most of the case, unless the error should not be retried for sure.
+						if !isNotRetriable(netErr) {
+							action = "Retry: net.Error and not in the non-retriable list"
+						} else {
+							action = "NoRetry: net.Error and in the non-retriable list"
+						}
 					} else {
 						action = "NoRetry: unrecognized error"
 					}
@@ -230,11 +243,17 @@ func NewRetryPolicyFactory(o RetryOptions) pipeline.Factory {
 					if err != nil {
 						tryCancel() // If we're returning an error, cancel this current/last per-retry timeout context
 					} else {
-						// TODO: Right now, we've decided to leak the per-try Context until the user's Context is canceled.
-						// Another option is that we wrap the last per-try context in a body and overwrite the Response's Body field with our wrapper.
+						// We wrap the last per-try context in a body and overwrite the Response's Body field with our wrapper.
 						// So, when the user closes the Body, the our per-try context gets closed too.
 						// Another option, is that the Last Policy do this wrapping for a per-retry context (not for the user's context)
-						_ = tryCancel // So, for now, we don't call cancel: cancel()
+						if response == nil || response.Response() == nil {
+							// We do panic in the case response or response.Response() is nil,
+							// as for client, the response should not be nil if request is sent and the operations is executed successfully.
+							// Another option, is that execute the cancel function when response or response.Response() is nil,
+							// as in this case, current per-try has nothing to do in future.
+							return nil, errors.New("invalid state, response should not be nil when the operation is executed successfully")
+						}
+						response.Response().Body = &contextCancelReadCloser{cf: tryCancel, body: response.Response().Body}
 					}
 					break // Don't retry
 				}
@@ -250,6 +269,78 @@ func NewRetryPolicyFactory(o RetryOptions) pipeline.Factory {
 			return response, err // Not retryable or too many retries; return the last response/error
 		}
 	})
+}
+
+// contextCancelReadCloser helps to invoke context's cancelFunc properly when the ReadCloser is closed.
+type contextCancelReadCloser struct {
+	cf   context.CancelFunc
+	body io.ReadCloser
+}
+
+func (rc *contextCancelReadCloser) Read(p []byte) (n int, err error) {
+	return rc.body.Read(p)
+}
+
+func (rc *contextCancelReadCloser) Close() error {
+	err := rc.body.Close()
+	if rc.cf != nil {
+		rc.cf()
+	}
+	return err
+}
+
+// isNotRetriable checks if the provided net.Error isn't retriable.
+func isNotRetriable(errToParse net.Error) bool {
+	// No error, so this is NOT retriable.
+	if errToParse == nil {
+		return true
+	}
+
+	// The error is either temporary or a timeout so it IS retriable (not not retriable).
+	if errToParse.Temporary() || errToParse.Timeout() {
+		return false
+	}
+
+	genericErr := error(errToParse)
+
+	// From here all the error are neither Temporary() nor Timeout().
+	switch err := errToParse.(type) {
+	case *net.OpError:
+		// The net.Error is also a net.OpError but the inner error is nil, so this is not retriable.
+		if err.Err == nil {
+			return true
+		}
+		genericErr = err.Err
+	}
+
+	switch genericErr.(type) {
+	case *net.AddrError, net.UnknownNetworkError, *net.DNSError, net.InvalidAddrError, *net.ParseError, *net.DNSConfigError:
+		// If the error is one of the ones listed, then it is NOT retriable.
+		return true
+	}
+
+	// If it's invalid header field name/value error thrown by http module, then it is NOT retriable.
+	// This could happen when metadata's key or value is invalid. (RoundTrip in transport.go)
+	if strings.Contains(genericErr.Error(), "invalid header field") {
+		return true
+	}
+
+	// Assume the error is retriable.
+	return false
+}
+
+var successStatusCodes = []int{http.StatusOK, http.StatusCreated, http.StatusAccepted, http.StatusNoContent, http.StatusPartialContent}
+
+func isSuccessStatusCode(resp *http.Response) bool {
+	if resp == nil {
+		return false
+	}
+	for _, i := range successStatusCodes {
+		if i == resp.StatusCode {
+			return true
+		}
+	}
+	return false
 }
 
 // According to https://github.com/golang/go/wiki/CompilerOptimizations, the compiler will inline this method and hopefully optimize all calls to it away

@@ -28,7 +28,10 @@ func Example() {
 	accountName, accountKey := accountInfo()
 
 	// Use your Storage account's name and key to create a credential object; this is used to access your account.
-	credential := azqueue.NewSharedKeyCredential(accountName, accountKey)
+	credential, err := azqueue.NewSharedKeyCredential(accountName, accountKey)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// Create a request pipeline that is used to process HTTP(S) requests and responses. It requires
 	// your account credentials. In more advanced scenarios, you can configure telemetry, retry policies,
@@ -52,7 +55,7 @@ func Example() {
 	queueURL := serviceURL.NewQueueURL("examplequeue") // Queue names require lowercase
 
 	// The code below shows how to create the queue. It is common to create a queue and never delete it:
-	_, err := queueURL.Create(ctx, azqueue.Metadata{})
+	_, err = queueURL.Create(ctx, azqueue.Metadata{})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -329,16 +332,22 @@ func ExampleAccountSASSignatureValues() {
 	accountName, accountKey := accountInfo()
 
 	// Use your Storage account's name and key to create a credential object; this is required to sign a SAS.
-	credential := azqueue.NewSharedKeyCredential(accountName, accountKey)
+	credential, err := azqueue.NewSharedKeyCredential(accountName, accountKey)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// Set the desired SAS signature values and sign them with the shared key credentials to get the SAS query parameters.
-	sasQueryParams := azqueue.AccountSASSignatureValues{
+	sasQueryParams, err := azqueue.AccountSASSignatureValues{
 		Protocol:      azqueue.SASProtocolHTTPS,       // Users MUST use HTTPS (not HTTP)
 		ExpiryTime:    time.Now().Add(48 * time.Hour), // 48-hours before expiration
 		Permissions:   azqueue.AccountSASPermissions{Read: true, List: true}.String(),
 		Services:      azqueue.AccountSASServices{Queue: true}.String(),
 		ResourceTypes: azqueue.AccountSASResourceTypes{Object: true}.String(),
 	}.NewSASQueryParameters(credential)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	qp := sasQueryParams.Encode()
 	urlToSendToSomeone := fmt.Sprintf("https://%s.queue.core.windows.net?%s", accountName, qp)
@@ -374,7 +383,10 @@ func ExampleQueueSASSignatureValues() {
 	accountName, accountKey := accountInfo()
 
 	// Use your Storage account's name and key to create a credential object; this is required to sign a SAS.
-	credential := azqueue.NewSharedKeyCredential(accountName, accountKey)
+	credential, err := azqueue.NewSharedKeyCredential(accountName, accountKey)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// This is the name of the queue that we're creating a SAS to.
 	queueName := "queue4" // Queue names require lowercase
@@ -421,14 +433,18 @@ func ExampleQueueURL_GetProperties() {
 
 	// Create a FileURL with default pipeline based on an existing share with name myshare.
 	u, _ := url.Parse(fmt.Sprintf("https://%s.queue.core.windows.net/queue5", accountName))
-	queueURL := azqueue.NewQueueURL(*u, azqueue.NewPipeline(azqueue.NewSharedKeyCredential(accountName, accountKey), azqueue.PipelineOptions{}))
+	credential, err := azqueue.NewSharedKeyCredential(accountName, accountKey)
+	if err != nil {
+		log.Fatal(err)
+	}
+	queueURL := azqueue.NewQueueURL(*u, azqueue.NewPipeline(credential, azqueue.PipelineOptions{}))
 
 	ctx := context.TODO() // This example uses a never-expiring context
 
 	// Create a queue with metadata (string key/value pairs)
 	// NOTE: Metadata key names are always converted to lowercase before being sent to the Storage Service.
 	// Therefore, you should always use lowercase letters; especially when querying a map for a metadata key.
-	_, err := queueURL.Create(ctx, azqueue.Metadata{"createdby": "Jeffrey"})
+	_, err = queueURL.Create(ctx, azqueue.Metadata{"createdby": "Jeffrey"})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -488,9 +504,14 @@ func ExampleMessagesURL_Clear() {
 	// Create a QueueURL with default pipeline based on an existing queue with name queue6.
 	u, _ := url.Parse(fmt.Sprintf("https://%s.queue.core.windows.net/queue6", accountName))
 
+	credential, err := azqueue.NewSharedKeyCredential(accountName, accountKey)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	ctx := context.TODO() // This example uses a never-expiring context
-	queueURL := azqueue.NewQueueURL(*u, azqueue.NewPipeline(azqueue.NewSharedKeyCredential(accountName, accountKey), azqueue.PipelineOptions{}))
-	_, err := queueURL.Create(ctx, azqueue.Metadata{})
+	queueURL := azqueue.NewQueueURL(*u, azqueue.NewPipeline(credential, azqueue.PipelineOptions{}))
+	_, err = queueURL.Create(ctx, azqueue.Metadata{})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -538,7 +559,10 @@ func ExampleQueueURL_SetAccessPolicy() {
 	accountName, accountKey := accountInfo()
 
 	// Use your Storage account's name and key to create a credential object; this is used to access your account.
-	credential := azqueue.NewSharedKeyCredential(accountName, accountKey)
+	credential, err := azqueue.NewSharedKeyCredential(accountName, accountKey)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// Create a QueueURL object that wraps the queue's URL and a default pipeline.
 	u, _ := url.Parse(fmt.Sprintf("https://%s.queue.core.windows.net/queue7", accountName))
@@ -548,7 +572,7 @@ func ExampleQueueURL_SetAccessPolicy() {
 	ctx := context.TODO() // This example uses a never-expiring context
 
 	// Create the container (with no metadata)
-	_, err := queueURL.Create(ctx, azqueue.Metadata{})
+	_, err = queueURL.Create(ctx, azqueue.Metadata{})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -595,7 +619,11 @@ func ExampleServiceClient_ListQueuesSegment() {
 
 	// Create an account ServiceURL with default pipeline.
 	u, _ := url.Parse(fmt.Sprintf("https://%s.queue.core.windows.net/", accountName))
-	serviceURL := azqueue.NewServiceURL(*u, azqueue.NewPipeline(azqueue.NewSharedKeyCredential(accountName, accountKey),
+	credential, err := azqueue.NewSharedKeyCredential(accountName, accountKey)
+	if err != nil {
+		log.Fatal(err)
+	}
+	serviceURL := azqueue.NewServiceURL(*u, azqueue.NewPipeline(credential,
 		azqueue.PipelineOptions{}))
 
 	ctx := context.TODO() // This example uses a never-expiring context
@@ -607,7 +635,7 @@ func ExampleServiceClient_ListQueuesSegment() {
 	}
 
 	q2 := serviceURL.NewQueueURL("zqueue-2")
-	_, err := q2.Create(ctx, azqueue.Metadata{"k": "v"})
+	_, err = q2.Create(ctx, azqueue.Metadata{"k": "v"})
 	if err != nil {
 		log.Fatal(err)
 	}
