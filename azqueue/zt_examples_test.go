@@ -628,7 +628,7 @@ func ExampleServiceClient_ListQueuesSegment() {
 		marker = segmentResponse.NextMarker
 
 		// Process the queues returned in this segment (if the segment is empty, the loop body won't execute)
-		for _, queueItem := range segmentResponse.Segment {
+		for _, queueItem := range segmentResponse.QueueItems {
 			fmt.Print("Queue name: " + queueItem.Name + "\n")
 			for k, v := range queueItem.Metadata {
 				fmt.Printf("   k=%v, v=%v\n", k, v)

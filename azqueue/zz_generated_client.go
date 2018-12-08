@@ -10,7 +10,7 @@ import (
 
 const (
 	// ServiceVersion specifies the version of the operations used in this package.
-	ServiceVersion = "2017-07-29"
+	ServiceVersion = "2018-03-28"
 )
 
 // managementClient is the base client for Azqueue.

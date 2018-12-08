@@ -83,7 +83,7 @@ func (client serviceClient) getPropertiesResponder(resp pipeline.Response) (pipe
 	defer resp.Response().Body.Close()
 	b, err := ioutil.ReadAll(resp.Response().Body)
 	if err != nil {
-		return result, NewResponseError(err, resp.Response(), "failed to read response body")
+		return result, err
 	}
 	if len(b) > 0 {
 		b = removeBOM(b)
@@ -153,7 +153,7 @@ func (client serviceClient) getStatisticsResponder(resp pipeline.Response) (pipe
 	defer resp.Response().Body.Close()
 	b, err := ioutil.ReadAll(resp.Response().Body)
 	if err != nil {
-		return result, NewResponseError(err, resp.Response(), "failed to read response body")
+		return result, err
 	}
 	if len(b) > 0 {
 		b = removeBOM(b)
@@ -181,7 +181,7 @@ func (client serviceClient) getStatisticsResponder(resp pipeline.Response) (pipe
 // href="https://docs.microsoft.com/en-us/rest/api/storageservices/setting-timeouts-for-queue-service-operations>Setting
 // Timeouts for Queue Service Operations.</a> requestID is provides a client-generated, opaque value with a 1 KB
 // character limit that is recorded in the analytics logs when storage analytics logging is enabled.
-func (client serviceClient) ListQueuesSegment(ctx context.Context, prefix *string, marker *string, maxresults *int32, include []ListQueuesIncludeType, timeout *int32, requestID *string) (*ListQueuesResponse, error) {
+func (client serviceClient) ListQueuesSegment(ctx context.Context, prefix *string, marker *string, maxresults *int32, include ListQueuesIncludeType, timeout *int32, requestID *string) (*ListQueuesSegmentResponse, error) {
 	if err := validate([]validation{
 		{targetValue: maxresults,
 			constraints: []constraint{{target: "maxresults", name: null, rule: false,
@@ -199,11 +199,11 @@ func (client serviceClient) ListQueuesSegment(ctx context.Context, prefix *strin
 	if err != nil {
 		return nil, err
 	}
-	return resp.(*ListQueuesResponse), err
+	return resp.(*ListQueuesSegmentResponse), err
 }
 
 // listQueuesSegmentPreparer prepares the ListQueuesSegment request.
-func (client serviceClient) listQueuesSegmentPreparer(prefix *string, marker *string, maxresults *int32, include []ListQueuesIncludeType, timeout *int32, requestID *string) (pipeline.Request, error) {
+func (client serviceClient) listQueuesSegmentPreparer(prefix *string, marker *string, maxresults *int32, include ListQueuesIncludeType, timeout *int32, requestID *string) (pipeline.Request, error) {
 	req, err := pipeline.NewRequest("GET", client.url, nil)
 	if err != nil {
 		return req, pipeline.NewError(err, "failed to create request")
@@ -218,8 +218,8 @@ func (client serviceClient) listQueuesSegmentPreparer(prefix *string, marker *st
 	if maxresults != nil {
 		params.Set("maxresults", strconv.FormatInt(int64(*maxresults), 10))
 	}
-	if include != nil && len(include) > 0 {
-		params.Set("include", joinConst(include, ","))
+	if include != ListQueuesIncludeNone {
+		params.Set("include", string(include))
 	}
 	if timeout != nil {
 		params.Set("timeout", strconv.FormatInt(int64(*timeout), 10))
@@ -239,14 +239,14 @@ func (client serviceClient) listQueuesSegmentResponder(resp pipeline.Response) (
 	if resp == nil {
 		return nil, err
 	}
-	result := &ListQueuesResponse{rawResponse: resp.Response()}
+	result := &ListQueuesSegmentResponse{rawResponse: resp.Response()}
 	if err != nil {
 		return result, err
 	}
 	defer resp.Response().Body.Close()
 	b, err := ioutil.ReadAll(resp.Response().Body)
 	if err != nil {
-		return result, NewResponseError(err, resp.Response(), "failed to read response body")
+		return result, err
 	}
 	if len(b) > 0 {
 		b = removeBOM(b)
@@ -286,10 +286,6 @@ func (client serviceClient) SetProperties(ctx context.Context, storageServicePro
 						chain: []constraint{{target: "storageServiceProperties.MinuteMetrics.RetentionPolicy.Days", name: null, rule: false,
 							chain: []constraint{{target: "storageServiceProperties.MinuteMetrics.RetentionPolicy.Days", name: inclusiveMinimum, rule: 1, chain: nil}}},
 						}},
-					}},
-				{target: "storageServiceProperties.DeleteRetentionPolicy", name: null, rule: false,
-					chain: []constraint{{target: "storageServiceProperties.DeleteRetentionPolicy.Days", name: null, rule: false,
-						chain: []constraint{{target: "storageServiceProperties.DeleteRetentionPolicy.Days", name: inclusiveMinimum, rule: 1, chain: nil}}},
 					}}}},
 		{targetValue: timeout,
 			constraints: []constraint{{target: "timeout", name: null, rule: false,
