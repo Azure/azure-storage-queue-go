@@ -5,6 +5,7 @@ package azqueue
 
 import (
 	"encoding/xml"
+	"errors"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -41,7 +42,7 @@ func (md *Metadata) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 
 // Marker represents an opaque value used in paged responses.
 type Marker struct {
-	val *string
+	Val *string
 }
 
 // NotDone returns true if the list enumeration should be started or is not yet complete. Specifically, NotDone returns true
@@ -49,14 +50,14 @@ type Marker struct {
 // the service. NotDone also returns true whenever the service returns an interim result portion. NotDone returns false only
 // after the service has returned the final result portion.
 func (m Marker) NotDone() bool {
-	return m.val == nil || *m.val != ""
+	return m.Val == nil || *m.Val != ""
 }
 
 // UnmarshalXML implements the xml.Unmarshaler interface for Marker.
 func (m *Marker) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	var out string
 	err := d.DecodeElement(&out, &start)
-	m.val = &out
+	m.Val = &out
 	return err
 }
 
@@ -71,6 +72,12 @@ func joinConst(s interface{}, sep string) string {
 		ss = append(ss, v.Index(i).String())
 	}
 	return strings.Join(ss, sep)
+}
+
+func validateError(err error) {
+	if err != nil {
+		panic(err)
+	}
 }
 
 // GeoReplicationStatusType enumerates the values for geo replication status type.
@@ -107,6 +114,119 @@ func PossibleListQueuesIncludeTypeValues() []ListQueuesIncludeType {
 	return []ListQueuesIncludeType{ListQueuesIncludeMetadata, ListQueuesIncludeNone}
 }
 
+// StorageErrorCodeType enumerates the values for storage error code type.
+type StorageErrorCodeType string
+
+const (
+	// StorageErrorCodeAccountAlreadyExists ...
+	StorageErrorCodeAccountAlreadyExists StorageErrorCodeType = "AccountAlreadyExists"
+	// StorageErrorCodeAccountBeingCreated ...
+	StorageErrorCodeAccountBeingCreated StorageErrorCodeType = "AccountBeingCreated"
+	// StorageErrorCodeAccountIsDisabled ...
+	StorageErrorCodeAccountIsDisabled StorageErrorCodeType = "AccountIsDisabled"
+	// StorageErrorCodeAuthenticationFailed ...
+	StorageErrorCodeAuthenticationFailed StorageErrorCodeType = "AuthenticationFailed"
+	// StorageErrorCodeConditionHeadersNotSupported ...
+	StorageErrorCodeConditionHeadersNotSupported StorageErrorCodeType = "ConditionHeadersNotSupported"
+	// StorageErrorCodeConditionNotMet ...
+	StorageErrorCodeConditionNotMet StorageErrorCodeType = "ConditionNotMet"
+	// StorageErrorCodeEmptyMetadataKey ...
+	StorageErrorCodeEmptyMetadataKey StorageErrorCodeType = "EmptyMetadataKey"
+	// StorageErrorCodeInsufficientAccountPermissions ...
+	StorageErrorCodeInsufficientAccountPermissions StorageErrorCodeType = "InsufficientAccountPermissions"
+	// StorageErrorCodeInternalError ...
+	StorageErrorCodeInternalError StorageErrorCodeType = "InternalError"
+	// StorageErrorCodeInvalidAuthenticationInfo ...
+	StorageErrorCodeInvalidAuthenticationInfo StorageErrorCodeType = "InvalidAuthenticationInfo"
+	// StorageErrorCodeInvalidHeaderValue ...
+	StorageErrorCodeInvalidHeaderValue StorageErrorCodeType = "InvalidHeaderValue"
+	// StorageErrorCodeInvalidHTTPVerb ...
+	StorageErrorCodeInvalidHTTPVerb StorageErrorCodeType = "InvalidHttpVerb"
+	// StorageErrorCodeInvalidInput ...
+	StorageErrorCodeInvalidInput StorageErrorCodeType = "InvalidInput"
+	// StorageErrorCodeInvalidMarker ...
+	StorageErrorCodeInvalidMarker StorageErrorCodeType = "InvalidMarker"
+	// StorageErrorCodeInvalidMd5 ...
+	StorageErrorCodeInvalidMd5 StorageErrorCodeType = "InvalidMd5"
+	// StorageErrorCodeInvalidMetadata ...
+	StorageErrorCodeInvalidMetadata StorageErrorCodeType = "InvalidMetadata"
+	// StorageErrorCodeInvalidQueryParameterValue ...
+	StorageErrorCodeInvalidQueryParameterValue StorageErrorCodeType = "InvalidQueryParameterValue"
+	// StorageErrorCodeInvalidRange ...
+	StorageErrorCodeInvalidRange StorageErrorCodeType = "InvalidRange"
+	// StorageErrorCodeInvalidResourceName ...
+	StorageErrorCodeInvalidResourceName StorageErrorCodeType = "InvalidResourceName"
+	// StorageErrorCodeInvalidURI ...
+	StorageErrorCodeInvalidURI StorageErrorCodeType = "InvalidUri"
+	// StorageErrorCodeInvalidXMLDocument ...
+	StorageErrorCodeInvalidXMLDocument StorageErrorCodeType = "InvalidXmlDocument"
+	// StorageErrorCodeInvalidXMLNodeValue ...
+	StorageErrorCodeInvalidXMLNodeValue StorageErrorCodeType = "InvalidXmlNodeValue"
+	// StorageErrorCodeMd5Mismatch ...
+	StorageErrorCodeMd5Mismatch StorageErrorCodeType = "Md5Mismatch"
+	// StorageErrorCodeMessageNotFound ...
+	StorageErrorCodeMessageNotFound StorageErrorCodeType = "MessageNotFound"
+	// StorageErrorCodeMessageTooLarge ...
+	StorageErrorCodeMessageTooLarge StorageErrorCodeType = "MessageTooLarge"
+	// StorageErrorCodeMetadataTooLarge ...
+	StorageErrorCodeMetadataTooLarge StorageErrorCodeType = "MetadataTooLarge"
+	// StorageErrorCodeMissingContentLengthHeader ...
+	StorageErrorCodeMissingContentLengthHeader StorageErrorCodeType = "MissingContentLengthHeader"
+	// StorageErrorCodeMissingRequiredHeader ...
+	StorageErrorCodeMissingRequiredHeader StorageErrorCodeType = "MissingRequiredHeader"
+	// StorageErrorCodeMissingRequiredQueryParameter ...
+	StorageErrorCodeMissingRequiredQueryParameter StorageErrorCodeType = "MissingRequiredQueryParameter"
+	// StorageErrorCodeMissingRequiredXMLNode ...
+	StorageErrorCodeMissingRequiredXMLNode StorageErrorCodeType = "MissingRequiredXmlNode"
+	// StorageErrorCodeMultipleConditionHeadersNotSupported ...
+	StorageErrorCodeMultipleConditionHeadersNotSupported StorageErrorCodeType = "MultipleConditionHeadersNotSupported"
+	// StorageErrorCodeNone represents an empty StorageErrorCodeType.
+	StorageErrorCodeNone StorageErrorCodeType = ""
+	// StorageErrorCodeOperationTimedOut ...
+	StorageErrorCodeOperationTimedOut StorageErrorCodeType = "OperationTimedOut"
+	// StorageErrorCodeOutOfRangeInput ...
+	StorageErrorCodeOutOfRangeInput StorageErrorCodeType = "OutOfRangeInput"
+	// StorageErrorCodeOutOfRangeQueryParameterValue ...
+	StorageErrorCodeOutOfRangeQueryParameterValue StorageErrorCodeType = "OutOfRangeQueryParameterValue"
+	// StorageErrorCodePopReceiptMismatch ...
+	StorageErrorCodePopReceiptMismatch StorageErrorCodeType = "PopReceiptMismatch"
+	// StorageErrorCodeQueueAlreadyExists ...
+	StorageErrorCodeQueueAlreadyExists StorageErrorCodeType = "QueueAlreadyExists"
+	// StorageErrorCodeQueueBeingDeleted ...
+	StorageErrorCodeQueueBeingDeleted StorageErrorCodeType = "QueueBeingDeleted"
+	// StorageErrorCodeQueueDisabled ...
+	StorageErrorCodeQueueDisabled StorageErrorCodeType = "QueueDisabled"
+	// StorageErrorCodeQueueNotEmpty ...
+	StorageErrorCodeQueueNotEmpty StorageErrorCodeType = "QueueNotEmpty"
+	// StorageErrorCodeQueueNotFound ...
+	StorageErrorCodeQueueNotFound StorageErrorCodeType = "QueueNotFound"
+	// StorageErrorCodeRequestBodyTooLarge ...
+	StorageErrorCodeRequestBodyTooLarge StorageErrorCodeType = "RequestBodyTooLarge"
+	// StorageErrorCodeRequestURLFailedToParse ...
+	StorageErrorCodeRequestURLFailedToParse StorageErrorCodeType = "RequestUrlFailedToParse"
+	// StorageErrorCodeResourceAlreadyExists ...
+	StorageErrorCodeResourceAlreadyExists StorageErrorCodeType = "ResourceAlreadyExists"
+	// StorageErrorCodeResourceNotFound ...
+	StorageErrorCodeResourceNotFound StorageErrorCodeType = "ResourceNotFound"
+	// StorageErrorCodeResourceTypeMismatch ...
+	StorageErrorCodeResourceTypeMismatch StorageErrorCodeType = "ResourceTypeMismatch"
+	// StorageErrorCodeServerBusy ...
+	StorageErrorCodeServerBusy StorageErrorCodeType = "ServerBusy"
+	// StorageErrorCodeUnsupportedHeader ...
+	StorageErrorCodeUnsupportedHeader StorageErrorCodeType = "UnsupportedHeader"
+	// StorageErrorCodeUnsupportedHTTPVerb ...
+	StorageErrorCodeUnsupportedHTTPVerb StorageErrorCodeType = "UnsupportedHttpVerb"
+	// StorageErrorCodeUnsupportedQueryParameter ...
+	StorageErrorCodeUnsupportedQueryParameter StorageErrorCodeType = "UnsupportedQueryParameter"
+	// StorageErrorCodeUnsupportedXMLNode ...
+	StorageErrorCodeUnsupportedXMLNode StorageErrorCodeType = "UnsupportedXmlNode"
+)
+
+// PossibleStorageErrorCodeTypeValues returns an array of possible values for the StorageErrorCodeType const type.
+func PossibleStorageErrorCodeTypeValues() []StorageErrorCodeType {
+	return []StorageErrorCodeType{StorageErrorCodeAccountAlreadyExists, StorageErrorCodeAccountBeingCreated, StorageErrorCodeAccountIsDisabled, StorageErrorCodeAuthenticationFailed, StorageErrorCodeConditionHeadersNotSupported, StorageErrorCodeConditionNotMet, StorageErrorCodeEmptyMetadataKey, StorageErrorCodeInsufficientAccountPermissions, StorageErrorCodeInternalError, StorageErrorCodeInvalidAuthenticationInfo, StorageErrorCodeInvalidHeaderValue, StorageErrorCodeInvalidHTTPVerb, StorageErrorCodeInvalidInput, StorageErrorCodeInvalidMarker, StorageErrorCodeInvalidMd5, StorageErrorCodeInvalidMetadata, StorageErrorCodeInvalidQueryParameterValue, StorageErrorCodeInvalidRange, StorageErrorCodeInvalidResourceName, StorageErrorCodeInvalidURI, StorageErrorCodeInvalidXMLDocument, StorageErrorCodeInvalidXMLNodeValue, StorageErrorCodeMd5Mismatch, StorageErrorCodeMessageNotFound, StorageErrorCodeMessageTooLarge, StorageErrorCodeMetadataTooLarge, StorageErrorCodeMissingContentLengthHeader, StorageErrorCodeMissingRequiredHeader, StorageErrorCodeMissingRequiredQueryParameter, StorageErrorCodeMissingRequiredXMLNode, StorageErrorCodeMultipleConditionHeadersNotSupported, StorageErrorCodeNone, StorageErrorCodeOperationTimedOut, StorageErrorCodeOutOfRangeInput, StorageErrorCodeOutOfRangeQueryParameterValue, StorageErrorCodePopReceiptMismatch, StorageErrorCodeQueueAlreadyExists, StorageErrorCodeQueueBeingDeleted, StorageErrorCodeQueueDisabled, StorageErrorCodeQueueNotEmpty, StorageErrorCodeQueueNotFound, StorageErrorCodeRequestBodyTooLarge, StorageErrorCodeRequestURLFailedToParse, StorageErrorCodeResourceAlreadyExists, StorageErrorCodeResourceNotFound, StorageErrorCodeResourceTypeMismatch, StorageErrorCodeServerBusy, StorageErrorCodeUnsupportedHeader, StorageErrorCodeUnsupportedHTTPVerb, StorageErrorCodeUnsupportedQueryParameter, StorageErrorCodeUnsupportedXMLNode}
+}
+
 // AccessPolicy - An Access policy
 type AccessPolicy struct {
 	// Start - the date-time the policy is active
@@ -119,18 +239,12 @@ type AccessPolicy struct {
 
 // MarshalXML implements the xml.Marshaler interface for AccessPolicy.
 func (ap AccessPolicy) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
-	if reflect.TypeOf((*AccessPolicy)(nil)).Elem().Size() != reflect.TypeOf((*accessPolicy)(nil)).Elem().Size() {
-		panic("size mismatch between AccessPolicy and accessPolicy")
-	}
 	ap2 := (*accessPolicy)(unsafe.Pointer(&ap))
 	return e.EncodeElement(*ap2, start)
 }
 
 // UnmarshalXML implements the xml.Unmarshaler interface for AccessPolicy.
 func (ap *AccessPolicy) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	if reflect.TypeOf((*AccessPolicy)(nil)).Elem().Size() != reflect.TypeOf((*accessPolicy)(nil)).Elem().Size() {
-		panic("size mismatch between AccessPolicy and accessPolicy")
-	}
 	ap2 := (*accessPolicy)(unsafe.Pointer(ap))
 	return d.DecodeElement(ap2, &start)
 }
@@ -175,18 +289,12 @@ type DequeuedMessageItem struct {
 
 // MarshalXML implements the xml.Marshaler interface for DequeuedMessageItem.
 func (dmi DequeuedMessageItem) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
-	if reflect.TypeOf((*DequeuedMessageItem)(nil)).Elem().Size() != reflect.TypeOf((*dequeuedMessageItem)(nil)).Elem().Size() {
-		panic("size mismatch between DequeuedMessageItem and dequeuedMessageItem")
-	}
 	dmi2 := (*dequeuedMessageItem)(unsafe.Pointer(&dmi))
 	return e.EncodeElement(*dmi2, start)
 }
 
 // UnmarshalXML implements the xml.Unmarshaler interface for DequeuedMessageItem.
 func (dmi *DequeuedMessageItem) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	if reflect.TypeOf((*DequeuedMessageItem)(nil)).Elem().Size() != reflect.TypeOf((*dequeuedMessageItem)(nil)).Elem().Size() {
-		panic("size mismatch between DequeuedMessageItem and dequeuedMessageItem")
-	}
 	dmi2 := (*dequeuedMessageItem)(unsafe.Pointer(dmi))
 	return d.DecodeElement(dmi2, &start)
 }
@@ -195,9 +303,9 @@ func (dmi *DequeuedMessageItem) UnmarshalXML(d *xml.Decoder, start xml.StartElem
 type EnqueuedMessage struct {
 	// XMLName is used for marshalling and is subject to removal in a future release.
 	XMLName xml.Name `xml:"QueueMessage"`
-	// MessageID - The Id of the Message
+	// MessageID - The Id of the Message.
 	MessageID string `xml:"MessageId"`
-	// InsertionTime - The time the Message was inserted into the Queue
+	// InsertionTime - The time the Message was inserted into the Queue.
 	InsertionTime time.Time `xml:"InsertionTime"`
 	// ExpirationTime - The time that the Message will expire and be automatically deleted.
 	ExpirationTime time.Time `xml:"ExpirationTime"`
@@ -209,23 +317,17 @@ type EnqueuedMessage struct {
 
 // MarshalXML implements the xml.Marshaler interface for EnqueuedMessage.
 func (em EnqueuedMessage) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
-	if reflect.TypeOf((*EnqueuedMessage)(nil)).Elem().Size() != reflect.TypeOf((*enqueuedMessage)(nil)).Elem().Size() {
-		panic("size mismatch between EnqueuedMessage and enqueuedMessage")
-	}
 	em2 := (*enqueuedMessage)(unsafe.Pointer(&em))
 	return e.EncodeElement(*em2, start)
 }
 
 // UnmarshalXML implements the xml.Unmarshaler interface for EnqueuedMessage.
 func (em *EnqueuedMessage) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	if reflect.TypeOf((*EnqueuedMessage)(nil)).Elem().Size() != reflect.TypeOf((*enqueuedMessage)(nil)).Elem().Size() {
-		panic("size mismatch between EnqueuedMessage and enqueuedMessage")
-	}
 	em2 := (*enqueuedMessage)(unsafe.Pointer(em))
 	return d.DecodeElement(em2, &start)
 }
 
-// EnqueueResponse ...
+// EnqueueResponse - Wraps the response from the messagesClient.Enqueue method.
 type EnqueueResponse struct {
 	rawResponse *http.Response
 	// XMLName is used for marshalling and is subject to removal in a future release.
@@ -256,9 +358,14 @@ func (er EnqueueResponse) Date() time.Time {
 	}
 	t, err := time.Parse(time.RFC1123, s)
 	if err != nil {
-		panic(err)
+		t = time.Time{}
 	}
 	return t
+}
+
+// ErrorCode returns the value for header x-ms-error-code.
+func (er EnqueueResponse) ErrorCode() string {
+	return er.rawResponse.Header.Get("x-ms-error-code")
 }
 
 // RequestID returns the value for header x-ms-request-id.
@@ -281,71 +388,70 @@ type GeoReplication struct {
 
 // MarshalXML implements the xml.Marshaler interface for GeoReplication.
 func (gr GeoReplication) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
-	if reflect.TypeOf((*GeoReplication)(nil)).Elem().Size() != reflect.TypeOf((*geoReplication)(nil)).Elem().Size() {
-		panic("size mismatch between GeoReplication and geoReplication")
-	}
 	gr2 := (*geoReplication)(unsafe.Pointer(&gr))
 	return e.EncodeElement(*gr2, start)
 }
 
 // UnmarshalXML implements the xml.Unmarshaler interface for GeoReplication.
 func (gr *GeoReplication) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	if reflect.TypeOf((*GeoReplication)(nil)).Elem().Size() != reflect.TypeOf((*geoReplication)(nil)).Elem().Size() {
-		panic("size mismatch between GeoReplication and geoReplication")
-	}
 	gr2 := (*geoReplication)(unsafe.Pointer(gr))
 	return d.DecodeElement(gr2, &start)
 }
 
-// ListQueuesResponse - The object returned when calling List Queues on a Queue Service.
-type ListQueuesResponse struct {
+// ListQueuesSegmentResponse - The object returned when calling List Queues on a Queue Service.
+type ListQueuesSegmentResponse struct {
 	rawResponse *http.Response
 	// XMLName is used for marshalling and is subject to removal in a future release.
-	XMLName         xml.Name `xml:"EnumerationResults"`
-	ServiceEndpoint string   `xml:"ServiceEndpoint,attr"`
-	Prefix          string   `xml:"Prefix"`
-	Marker          *string  `xml:"Marker"`
-	MaxResults      int32    `xml:"MaxResults"`
-	Segment         []Queue  `xml:"Queues>Queue"`
-	NextMarker      Marker   `xml:"NextMarker"`
+	XMLName         xml.Name    `xml:"EnumerationResults"`
+	ServiceEndpoint string      `xml:"ServiceEndpoint,attr"`
+	Prefix          string      `xml:"Prefix"`
+	Marker          *string     `xml:"Marker"`
+	MaxResults      int32       `xml:"MaxResults"`
+	QueueItems      []QueueItem `xml:"Queues>Queue"`
+	NextMarker      Marker      `xml:"NextMarker"`
 }
 
 // Response returns the raw HTTP response object.
-func (lqr ListQueuesResponse) Response() *http.Response {
-	return lqr.rawResponse
+func (lqsr ListQueuesSegmentResponse) Response() *http.Response {
+	return lqsr.rawResponse
 }
 
 // StatusCode returns the HTTP status code of the response, e.g. 200.
-func (lqr ListQueuesResponse) StatusCode() int {
-	return lqr.rawResponse.StatusCode
+func (lqsr ListQueuesSegmentResponse) StatusCode() int {
+	return lqsr.rawResponse.StatusCode
 }
 
 // Status returns the HTTP status message of the response, e.g. "200 OK".
-func (lqr ListQueuesResponse) Status() string {
-	return lqr.rawResponse.Status
+func (lqsr ListQueuesSegmentResponse) Status() string {
+	return lqsr.rawResponse.Status
 }
 
 // Date returns the value for header Date.
-func (lqr ListQueuesResponse) Date() time.Time {
-	s := lqr.rawResponse.Header.Get("Date")
+func (lqsr ListQueuesSegmentResponse) Date() time.Time {
+	s := lqsr.rawResponse.Header.Get("Date")
 	if s == "" {
 		return time.Time{}
 	}
 	t, err := time.Parse(time.RFC1123, s)
 	if err != nil {
-		panic(err)
+		t = time.Time{}
 	}
 	return t
 }
 
+// ErrorCode returns the value for header x-ms-error-code.
+func (lqsr ListQueuesSegmentResponse) ErrorCode() string {
+	return lqsr.rawResponse.Header.Get("x-ms-error-code")
+}
+
 // RequestID returns the value for header x-ms-request-id.
-func (lqr ListQueuesResponse) RequestID() string {
-	return lqr.rawResponse.Header.Get("x-ms-request-id")
+func (lqsr ListQueuesSegmentResponse) RequestID() string {
+	return lqsr.rawResponse.Header.Get("x-ms-request-id")
 }
 
 // Version returns the value for header x-ms-version.
-func (lqr ListQueuesResponse) Version() string {
-	return lqr.rawResponse.Header.Get("x-ms-version")
+func (lqsr ListQueuesSegmentResponse) Version() string {
+	return lqsr.rawResponse.Header.Get("x-ms-version")
 }
 
 // Logging - Azure Analytics Logging settings.
@@ -389,9 +495,14 @@ func (midr MessageIDDeleteResponse) Date() time.Time {
 	}
 	t, err := time.Parse(time.RFC1123, s)
 	if err != nil {
-		panic(err)
+		t = time.Time{}
 	}
 	return t
+}
+
+// ErrorCode returns the value for header x-ms-error-code.
+func (midr MessageIDDeleteResponse) ErrorCode() string {
+	return midr.rawResponse.Header.Get("x-ms-error-code")
 }
 
 // RequestID returns the value for header x-ms-request-id.
@@ -432,9 +543,14 @@ func (miur MessageIDUpdateResponse) Date() time.Time {
 	}
 	t, err := time.Parse(time.RFC1123, s)
 	if err != nil {
-		panic(err)
+		t = time.Time{}
 	}
 	return t
+}
+
+// ErrorCode returns the value for header x-ms-error-code.
+func (miur MessageIDUpdateResponse) ErrorCode() string {
+	return miur.rawResponse.Header.Get("x-ms-error-code")
 }
 
 // PopReceipt returns the value for header x-ms-popreceipt.
@@ -455,7 +571,7 @@ func (miur MessageIDUpdateResponse) TimeNextVisible() time.Time {
 	}
 	t, err := time.Parse(time.RFC1123, s)
 	if err != nil {
-		panic(err)
+		t = time.Time{}
 	}
 	return t
 }
@@ -493,9 +609,14 @@ func (mcr MessagesClearResponse) Date() time.Time {
 	}
 	t, err := time.Parse(time.RFC1123, s)
 	if err != nil {
-		panic(err)
+		t = time.Time{}
 	}
 	return t
+}
+
+// ErrorCode returns the value for header x-ms-error-code.
+func (mcr MessagesClearResponse) ErrorCode() string {
+	return mcr.rawResponse.Header.Get("x-ms-error-code")
 }
 
 // RequestID returns the value for header x-ms-request-id.
@@ -523,9 +644,9 @@ type Metrics struct {
 type PeekedMessageItem struct {
 	// XMLName is used for marshalling and is subject to removal in a future release.
 	XMLName xml.Name `xml:"QueueMessage"`
-	// MessageID - The Id of the Message
+	// MessageID - The Id of the Message.
 	MessageID string `xml:"MessageId"`
-	// InsertionTime - The time the Message was inserted into the Queue
+	// InsertionTime - The time the Message was inserted into the Queue.
 	InsertionTime time.Time `xml:"InsertionTime"`
 	// ExpirationTime - The time that the Message will expire and be automatically deleted.
 	ExpirationTime time.Time `xml:"ExpirationTime"`
@@ -537,23 +658,17 @@ type PeekedMessageItem struct {
 
 // MarshalXML implements the xml.Marshaler interface for PeekedMessageItem.
 func (pmi PeekedMessageItem) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
-	if reflect.TypeOf((*PeekedMessageItem)(nil)).Elem().Size() != reflect.TypeOf((*peekedMessageItem)(nil)).Elem().Size() {
-		panic("size mismatch between PeekedMessageItem and peekedMessageItem")
-	}
 	pmi2 := (*peekedMessageItem)(unsafe.Pointer(&pmi))
 	return e.EncodeElement(*pmi2, start)
 }
 
 // UnmarshalXML implements the xml.Unmarshaler interface for PeekedMessageItem.
 func (pmi *PeekedMessageItem) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	if reflect.TypeOf((*PeekedMessageItem)(nil)).Elem().Size() != reflect.TypeOf((*peekedMessageItem)(nil)).Elem().Size() {
-		panic("size mismatch between PeekedMessageItem and peekedMessageItem")
-	}
 	pmi2 := (*peekedMessageItem)(unsafe.Pointer(pmi))
 	return d.DecodeElement(pmi2, &start)
 }
 
-// PeekResponse ...
+// PeekResponse - Wraps the response from the messagesClient.Peek method.
 type PeekResponse struct {
 	rawResponse *http.Response
 	// XMLName is used for marshalling and is subject to removal in a future release.
@@ -584,9 +699,14 @@ func (pr PeekResponse) Date() time.Time {
 	}
 	t, err := time.Parse(time.RFC1123, s)
 	if err != nil {
-		panic(err)
+		t = time.Time{}
 	}
 	return t
+}
+
+// ErrorCode returns the value for header x-ms-error-code.
+func (pr PeekResponse) ErrorCode() string {
+	return pr.rawResponse.Header.Get("x-ms-error-code")
 }
 
 // RequestID returns the value for header x-ms-request-id.
@@ -597,13 +717,6 @@ func (pr PeekResponse) RequestID() string {
 // Version returns the value for header x-ms-version.
 func (pr PeekResponse) Version() string {
 	return pr.rawResponse.Header.Get("x-ms-version")
-}
-
-// Queue - An Azure Storage Queue.
-type Queue struct {
-	// Name - The name of the Queue.
-	Name     string   `xml:"Name"`
-	Metadata Metadata `xml:"Metadata"`
 }
 
 // QueueCreateResponse ...
@@ -634,9 +747,14 @@ func (qcr QueueCreateResponse) Date() time.Time {
 	}
 	t, err := time.Parse(time.RFC1123, s)
 	if err != nil {
-		panic(err)
+		t = time.Time{}
 	}
 	return t
+}
+
+// ErrorCode returns the value for header x-ms-error-code.
+func (qcr QueueCreateResponse) ErrorCode() string {
+	return qcr.rawResponse.Header.Get("x-ms-error-code")
 }
 
 // RequestID returns the value for header x-ms-request-id.
@@ -677,9 +795,14 @@ func (qdr QueueDeleteResponse) Date() time.Time {
 	}
 	t, err := time.Parse(time.RFC1123, s)
 	if err != nil {
-		panic(err)
+		t = time.Time{}
 	}
 	return t
+}
+
+// ErrorCode returns the value for header x-ms-error-code.
+func (qdr QueueDeleteResponse) ErrorCode() string {
+	return qdr.rawResponse.Header.Get("x-ms-error-code")
 }
 
 // RequestID returns the value for header x-ms-request-id.
@@ -733,7 +856,7 @@ func (qgpr QueueGetPropertiesResponse) ApproximateMessagesCount() int32 {
 	}
 	i, err := strconv.ParseInt(s, 10, 32)
 	if err != nil {
-		panic(err)
+		i = 0
 	}
 	return int32(i)
 }
@@ -746,9 +869,14 @@ func (qgpr QueueGetPropertiesResponse) Date() time.Time {
 	}
 	t, err := time.Parse(time.RFC1123, s)
 	if err != nil {
-		panic(err)
+		t = time.Time{}
 	}
 	return t
+}
+
+// ErrorCode returns the value for header x-ms-error-code.
+func (qgpr QueueGetPropertiesResponse) ErrorCode() string {
+	return qgpr.rawResponse.Header.Get("x-ms-error-code")
 }
 
 // RequestID returns the value for header x-ms-request-id.
@@ -761,13 +889,22 @@ func (qgpr QueueGetPropertiesResponse) Version() string {
 	return qgpr.rawResponse.Header.Get("x-ms-version")
 }
 
+// QueueItem - An Azure Storage Queue.
+type QueueItem struct {
+	// XMLName is used for marshalling and is subject to removal in a future release.
+	XMLName xml.Name `xml:"Queue"`
+	// Name - The name of the Queue.
+	Name     string   `xml:"Name"`
+	Metadata Metadata `xml:"Metadata"`
+}
+
 // QueueMessage - A Message object which can be stored in a Queue
 type QueueMessage struct {
 	// MessageText - The content of the message
 	MessageText string `xml:"MessageText"`
 }
 
-// QueueMessagesList ...
+// QueueMessagesList - Wraps the response from the messagesClient.Dequeue method.
 type QueueMessagesList struct {
 	rawResponse *http.Response
 	Items       []DequeuedMessageItem `xml:"QueueMessage"`
@@ -796,9 +933,14 @@ func (qml QueueMessagesList) Date() time.Time {
 	}
 	t, err := time.Parse(time.RFC1123, s)
 	if err != nil {
-		panic(err)
+		t = time.Time{}
 	}
 	return t
+}
+
+// ErrorCode returns the value for header x-ms-error-code.
+func (qml QueueMessagesList) ErrorCode() string {
+	return qml.rawResponse.Header.Get("x-ms-error-code")
 }
 
 // RequestID returns the value for header x-ms-request-id.
@@ -839,9 +981,14 @@ func (qsapr QueueSetAccessPolicyResponse) Date() time.Time {
 	}
 	t, err := time.Parse(time.RFC1123, s)
 	if err != nil {
-		panic(err)
+		t = time.Time{}
 	}
 	return t
+}
+
+// ErrorCode returns the value for header x-ms-error-code.
+func (qsapr QueueSetAccessPolicyResponse) ErrorCode() string {
+	return qsapr.rawResponse.Header.Get("x-ms-error-code")
 }
 
 // RequestID returns the value for header x-ms-request-id.
@@ -882,9 +1029,14 @@ func (qsmr QueueSetMetadataResponse) Date() time.Time {
 	}
 	t, err := time.Parse(time.RFC1123, s)
 	if err != nil {
-		panic(err)
+		t = time.Time{}
 	}
 	return t
+}
+
+// ErrorCode returns the value for header x-ms-error-code.
+func (qsmr QueueSetMetadataResponse) ErrorCode() string {
+	return qsmr.rawResponse.Header.Get("x-ms-error-code")
 }
 
 // RequestID returns the value for header x-ms-request-id.
@@ -925,6 +1077,11 @@ func (sspr ServiceSetPropertiesResponse) Status() string {
 	return sspr.rawResponse.Status
 }
 
+// ErrorCode returns the value for header x-ms-error-code.
+func (sspr ServiceSetPropertiesResponse) ErrorCode() string {
+	return sspr.rawResponse.Header.Get("x-ms-error-code")
+}
+
 // RequestID returns the value for header x-ms-request-id.
 func (sspr ServiceSetPropertiesResponse) RequestID() string {
 	return sspr.rawResponse.Header.Get("x-ms-request-id")
@@ -943,7 +1100,7 @@ type SignedIdentifier struct {
 	AccessPolicy AccessPolicy `xml:"AccessPolicy"`
 }
 
-// SignedIdentifiers ...
+// SignedIdentifiers - Wraps the response from the queueClient.GetAccessPolicy method.
 type SignedIdentifiers struct {
 	rawResponse *http.Response
 	Items       []SignedIdentifier `xml:"SignedIdentifier"`
@@ -972,9 +1129,14 @@ func (si SignedIdentifiers) Date() time.Time {
 	}
 	t, err := time.Parse(time.RFC1123, s)
 	if err != nil {
-		panic(err)
+		t = time.Time{}
 	}
 	return t
+}
+
+// ErrorCode returns the value for header x-ms-error-code.
+func (si SignedIdentifiers) ErrorCode() string {
+	return si.rawResponse.Header.Get("x-ms-error-code")
 }
 
 // RequestID returns the value for header x-ms-request-id.
@@ -998,10 +1160,6 @@ type StorageServiceProperties struct {
 	MinuteMetrics *Metrics `xml:"MinuteMetrics"`
 	// Cors - The set of CORS rules.
 	Cors []CorsRule `xml:"Cors>CorsRule"`
-	// DefaultServiceVersion - The default version to use for requests to the Queue service if an incoming request's version is not specified. Possible values include version 2008-10-27 and all more recent versions
-	DefaultServiceVersion *string `xml:"DefaultServiceVersion"`
-	// DeleteRetentionPolicy - The Delete Retention Policy for the service
-	DeleteRetentionPolicy *RetentionPolicy `xml:"DeleteRetentionPolicy"`
 }
 
 // Response returns the raw HTTP response object.
@@ -1017,6 +1175,11 @@ func (ssp StorageServiceProperties) StatusCode() int {
 // Status returns the HTTP status message of the response, e.g. "200 OK".
 func (ssp StorageServiceProperties) Status() string {
 	return ssp.rawResponse.Status
+}
+
+// ErrorCode returns the value for header x-ms-error-code.
+func (ssp StorageServiceProperties) ErrorCode() string {
+	return ssp.rawResponse.Header.Get("x-ms-error-code")
 }
 
 // RequestID returns the value for header x-ms-request-id.
@@ -1059,9 +1222,14 @@ func (sss StorageServiceStats) Date() time.Time {
 	}
 	t, err := time.Parse(time.RFC1123, s)
 	if err != nil {
-		panic(err)
+		t = time.Time{}
 	}
 	return t
+}
+
+// ErrorCode returns the value for header x-ms-error-code.
+func (sss StorageServiceStats) ErrorCode() string {
+	return sss.rawResponse.Header.Get("x-ms-error-code")
 }
 
 // RequestID returns the value for header x-ms-request-id.
@@ -1072,6 +1240,24 @@ func (sss StorageServiceStats) RequestID() string {
 // Version returns the value for header x-ms-version.
 func (sss StorageServiceStats) Version() string {
 	return sss.rawResponse.Header.Get("x-ms-version")
+}
+
+func init() {
+	if reflect.TypeOf((*AccessPolicy)(nil)).Elem().Size() != reflect.TypeOf((*accessPolicy)(nil)).Elem().Size() {
+		validateError(errors.New("size mismatch between AccessPolicy and accessPolicy"))
+	}
+	if reflect.TypeOf((*GeoReplication)(nil)).Elem().Size() != reflect.TypeOf((*geoReplication)(nil)).Elem().Size() {
+		validateError(errors.New("size mismatch between GeoReplication and geoReplication"))
+	}
+	if reflect.TypeOf((*DequeuedMessageItem)(nil)).Elem().Size() != reflect.TypeOf((*dequeuedMessageItem)(nil)).Elem().Size() {
+		validateError(errors.New("size mismatch between DequeuedMessageItem and dequeuedMessageItem"))
+	}
+	if reflect.TypeOf((*PeekedMessageItem)(nil)).Elem().Size() != reflect.TypeOf((*peekedMessageItem)(nil)).Elem().Size() {
+		validateError(errors.New("size mismatch between PeekedMessageItem and peekedMessageItem"))
+	}
+	if reflect.TypeOf((*EnqueuedMessage)(nil)).Elem().Size() != reflect.TypeOf((*enqueuedMessage)(nil)).Elem().Size() {
+		validateError(errors.New("size mismatch between EnqueuedMessage and enqueuedMessage"))
+	}
 }
 
 const (

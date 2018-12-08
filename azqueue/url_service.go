@@ -70,9 +70,9 @@ func appendToURLPath(u url.URL, name string) url.URL {
 // Marker to start enumeration from the beginning. Queue names are returned in lexicographic order.
 // After getting a segment, process it, and then call ListQueuesSegment again (passing the the previously-returned
 // Marker) to get the next segment. For more information, see https://docs.microsoft.com/en-us/rest/api/storageservices/list-queues1.
-func (s ServiceURL) ListQueuesSegment(ctx context.Context, marker Marker, o ListQueuesSegmentOptions) (*ListQueuesResponse, error) {
+func (s ServiceURL) ListQueuesSegment(ctx context.Context, marker Marker, o ListQueuesSegmentOptions) (*ListQueuesSegmentResponse, error) {
 	prefix, include, maxResults := o.pointers()
-	return s.client.ListQueuesSegment(ctx, prefix, marker.val, maxResults,
+	return s.client.ListQueuesSegment(ctx, prefix, marker.Val, maxResults,
 		include, nil, nil)
 }
 
@@ -87,7 +87,7 @@ type ListQueuesSegmentOptions struct {
 	MaxResults int32
 }
 
-func (o *ListQueuesSegmentOptions) pointers() (prefix *string, include []ListQueuesIncludeType, maxResults *int32) {
+func (o *ListQueuesSegmentOptions) pointers() (prefix *string, include ListQueuesIncludeType, maxResults *int32) {
 	if o.Prefix != "" {
 		prefix = &o.Prefix // else nil
 	}
@@ -97,7 +97,9 @@ func (o *ListQueuesSegmentOptions) pointers() (prefix *string, include []ListQue
 		}
 		maxResults = &o.MaxResults
 	}
-	include = o.Detail.slice()
+	if o.Detail.Metadata {
+		include = ListQueuesIncludeMetadata
+	}
 	return
 }
 
