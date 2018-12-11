@@ -75,19 +75,32 @@ func (m MessagesURL) Clear(ctx context.Context) (*MessagesClearResponse, error) 
 // Enqueue adds a new message to the back of a queue. The visibility timeout specifies how long the message should be invisible
 // to Dequeue and Peek operations. The message content must be a UTF-8 encoded string that is up to 64KB in size.
 // For more information, see https://docs.microsoft.com/en-us/rest/api/storageservices/put-message.
+// The timeToLive interval for the message is defined in seconds. The maximum timeToLive can be any positive number, as well as -time.Second indicating that the message does not expire.
+// If 0 is passed for timeToLive, the default value is 7 days.
 func (m MessagesURL) Enqueue(ctx context.Context, messageText string, visibilityTimeout time.Duration, timeToLive time.Duration) (*EnqueueMessageResponse, error) {
 	vt := int32(visibilityTimeout.Seconds())
-	ttl := int32(timeToLive.Seconds())
-	er, err := m.client.Enqueue(ctx, QueueMessage{MessageText: messageText}, &vt, &ttl, nil, nil)
-	item := er.Items[0]
+
+	// timeToLive should only be sent if it's not 0
+	var ttl *int32 = nil
+	if timeToLive != 0 {
+		ttlValue := int32(timeToLive.Seconds())
+		ttl = &ttlValue
+	}
+
+	resp, err := m.client.Enqueue(ctx, QueueMessage{MessageText: messageText}, &vt, ttl, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	item := resp.Items[0]
 	return &EnqueueMessageResponse{
-		inner: er,
-		MessageID:MessageID(item.MessageID),
-		PopReceipt:PopReceipt(item.PopReceipt),
-		TimeNextVisible:item.TimeNextVisible,
-		InsertionTime:item.InsertionTime,
-		ExpirationTime:item.ExpirationTime,
-	}, err
+		inner:           resp,
+		MessageID:       MessageID(item.MessageID),
+		PopReceipt:      PopReceipt(item.PopReceipt),
+		TimeNextVisible: item.TimeNextVisible,
+		InsertionTime:   item.InsertionTime,
+		ExpirationTime:  item.ExpirationTime,
+	}, nil
 }
 
 // EnqueueMessageResponse holds the results of a successfully-enqueued message.
