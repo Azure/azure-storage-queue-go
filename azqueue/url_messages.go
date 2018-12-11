@@ -32,9 +32,6 @@ type MessagesURL struct {
 
 // NewMessageURL creates a MessagesURL object using the specified URL and request policy pipeline.
 func NewMessagesURL(url url.URL, p pipeline.Pipeline) MessagesURL {
-	if p == nil {
-		panic("p can't be nil")
-	}
 	client := newMessagesClient(url, p)
 	return MessagesURL{client: client}
 }

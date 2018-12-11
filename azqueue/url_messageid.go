@@ -15,9 +15,6 @@ type MessageIDURL struct {
 
 // NewMessageIDURL creates a MessageIDURL object using the specified URL and request policy pipeline.
 func NewMessageIDURL(url url.URL, p pipeline.Pipeline) MessageIDURL {
-	if p == nil {
-		panic("p can't be nil")
-	}
 	client := newMessageIDClient(url, p)
 	return MessageIDURL{client: client}
 }

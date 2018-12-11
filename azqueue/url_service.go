@@ -13,9 +13,6 @@ type ServiceURL struct {
 
 // NewServiceURL creates a ServiceURL object using the specified URL and request policy pipeline.
 func NewServiceURL(primaryURL url.URL, p pipeline.Pipeline) ServiceURL {
-	if p == nil {
-		panic("p can't be nil")
-	}
 	client := newServiceClient(primaryURL, p)
 	return ServiceURL{client: client}
 }
@@ -92,9 +89,6 @@ func (o *ListQueuesSegmentOptions) pointers() (prefix *string, include ListQueue
 		prefix = &o.Prefix // else nil
 	}
 	if o.MaxResults != 0 {
-		if o.MaxResults < 0 {
-			panic("MaxResults must be >= 0")
-		}
 		maxResults = &o.MaxResults
 	}
 	if o.Detail.Metadata {

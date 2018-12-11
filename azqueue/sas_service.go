@@ -21,10 +21,6 @@ type QueueSASSignatureValues struct {
 // NewSASQueryParameters uses an account's shared key credential to sign this signature values to produce
 // the proper SAS query parameters.
 func (v QueueSASSignatureValues) NewSASQueryParameters(sharedKeyCredential *SharedKeyCredential) SASQueryParameters {
-	if sharedKeyCredential == nil {
-		panic("sharedKeyCredential can't be nil")
-	}
-
 	if v.Version == "" {
 		v.Version = SASVersion
 	}
