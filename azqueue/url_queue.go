@@ -29,9 +29,6 @@ type QueueURL struct {
 
 // NewQueueURL creates a QueueURL object using the specified URL and request policy pipeline.
 func NewQueueURL(url url.URL, p pipeline.Pipeline) QueueURL {
-	if p == nil {
-		panic("p can't be nil")
-	}
 	client := newQueueClient(url, p)
 	return QueueURL{client: client}
 }

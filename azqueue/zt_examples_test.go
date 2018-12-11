@@ -316,7 +316,10 @@ func ExampleQueueURLParts() {
 	parts.MessageID = ""
 
 	// Construct a new URL from the parts:
-	newURL := parts.URL()
+	newURL, err := parts.URL()
+	if err != nil {
+		log.Fatal(err)
+	}
 	fmt.Print(newURL.String())
 	// NOTE: You can pass the new URL to NewQueueURL to manipulate the queue.
 

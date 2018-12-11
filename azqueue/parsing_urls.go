@@ -56,12 +56,12 @@ func NewQueueURLParts(u url.URL) QueueURLParts {
 
 // URL returns a URL object whose fields are initialized from the QueueURLParts fields. The URL's RawQuery
 // field contains the SAS and unparsed query parameters.
-func (up QueueURLParts) URL() url.URL {
+func (up QueueURLParts) URL() (url.URL, error) {
 	if up.MessageID != "" && !up.Messages || up.QueueName == "" {
-		panic(errors.New("can't produce a URL with a messageID but without a queue name or Messages"))
+		return url.URL{}, errors.New("can't produce a URL with a messageID but without a queue name or Messages")
 	}
 	if up.MessageID == "" && up.Messages && up.QueueName == "" {
-		panic(errors.New("can't produce a URL with Messages but without a queue name "))
+		return url.URL{}, errors.New("can't produce a URL with Messages but without a queue name ")
 	}
 
 	path := ""
@@ -91,5 +91,5 @@ func (up QueueURLParts) URL() url.URL {
 		Path:     path,
 		RawQuery: rawQuery,
 	}
-	return u
+	return u, nil
 }
