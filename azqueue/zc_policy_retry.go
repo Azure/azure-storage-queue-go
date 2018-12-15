@@ -54,10 +54,16 @@ type RetryOptions struct {
 	// MaxRetryDelay specifies the maximum delay allowed before retrying an operation (0=default).
 	// If you specify 0, then you must also specify 0 for RetryDelay.
 	MaxRetryDelay time.Duration
+
+	// RetryReadsFromSecondaryHost specifies whether the retry policy should retry a read operation against another host.
+	// If RetryReadsFromSecondaryHost is "" (the default) then operations are not retried against another host.
+	// NOTE: Before setting this field, make sure you understand the issues around reading stale & potentially-inconsistent
+	// data at this webpage: https://docs.microsoft.com/en-us/azure/storage/common/storage-designing-ha-apps-with-ragrs
+	RetryReadsFromSecondaryHost string
 }
 
 func (o RetryOptions) retryReadsFromSecondaryHost() string {
-	return "" // This is for non-blob SDKs
+	return o.RetryReadsFromSecondaryHost
 }
 
 func (o RetryOptions) defaults() RetryOptions {
