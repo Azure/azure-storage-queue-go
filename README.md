@@ -39,7 +39,7 @@ This repository contains the open source Queue SDK for Go.
  the ServiceURL, QueueURL, MessagesURL, and MessageIDURL types.
 
 ## Code Samples
-* [Queue Storage Examples](https://godoc.org/github.com/Azure/azure-storage-queue-go/2017-07-29/azqueue#pkg-examples)
+* [Queue Storage Examples](https://godoc.org/github.com/Azure/azure-storage-queue-go/azqueue#pkg-examples)
 
 ## License
 This project is licensed under MIT.
