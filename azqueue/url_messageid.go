@@ -3,7 +3,6 @@ package azqueue
 import (
 	"context"
 	"github.com/Azure/azure-pipeline-go/pipeline"
-	"errors"
 	"net/http"
 	"net/url"
 	"time"
