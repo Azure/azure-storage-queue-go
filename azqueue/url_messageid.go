@@ -46,6 +46,11 @@ func (m MessageIDURL) Delete(ctx context.Context, popReceipt PopReceipt) (*Messa
 func (m MessageIDURL) Update(ctx context.Context, popReceipt PopReceipt, visibilityTimeout time.Duration, message string) (*UpdatedMessageResponse, error) {
 	r, err := m.client.Update(ctx, QueueMessage{MessageText: message}, string(popReceipt),
 		int32(visibilityTimeout.Seconds()), nil, nil)
+
+	if err != nil {
+		return nil, err
+	}
+
 	return &UpdatedMessageResponse{
 		inner:           r,
 		PopReceipt:      PopReceipt(r.PopReceipt()),

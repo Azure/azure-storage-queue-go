@@ -1,4 +1,4 @@
 package azqueue
 
-const serviceLibVersion = "0.1"
+const serviceLibVersion = "0.3"
 
