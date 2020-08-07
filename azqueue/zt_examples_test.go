@@ -1,3 +1,5 @@
+// +build example
+
 package azqueue_test
 
 import (
