@@ -1,6 +1,7 @@
 language: go
 go:
-- "1.11"
+- "1.13.x"
+- "1.14.x"
 script:
 - export GO111MODULE=on
 - GOOS=linux go build ./azqueue
