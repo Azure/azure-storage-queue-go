@@ -2,16 +2,16 @@ package azqueue_test
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"github.com/Azure/azure-storage-queue-go/azqueue"
-	chk "gopkg.in/check.v1"
 	"net/url"
 	"os"
 	"runtime"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/Azure/azure-storage-queue-go/azqueue"
+	chk "gopkg.in/check.v1"
 )
 
 const (
@@ -20,8 +20,11 @@ const (
 
 // Hook up gocheck into the "go test" runner.
 func Test(t *testing.T) { chk.TestingT(t) }
+
 var ctx = context.Background()
+
 type queueSuite struct{}
+
 var _ = chk.Suite(&queueSuite{})
 
 func getGenericCredential(accountType string) (*azqueue.SharedKeyCredential, error) {
@@ -29,7 +32,9 @@ func getGenericCredential(accountType string) (*azqueue.SharedKeyCredential, err
 	accountKeyEnvVar := accountType + "ACCOUNT_KEY"
 	accountName, accountKey := os.Getenv(accountNameEnvVar), os.Getenv(accountKeyEnvVar)
 	if accountName == "" || accountKey == "" {
-		return nil, errors.New(accountNameEnvVar + " and/or " + accountKeyEnvVar + " environment variables not specified.")
+		// https://docs.microsoft.com/en-us/azure/storage/common/storage-use-emulator
+		accountName = "devstoreaccount1"
+		accountKey = "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw=="
 	}
 	return azqueue.NewSharedKeyCredential(accountName, accountKey)
 }
@@ -41,7 +46,12 @@ func getGenericQueueServiceURL() (azqueue.ServiceURL, error) {
 	}
 
 	pipeline := azqueue.NewPipeline(credential, azqueue.PipelineOptions{})
-	blobPrimaryURL, _ := url.Parse("https://" + credential.AccountName() + ".queue.core.windows.net/")
+	var blobPrimaryURL *url.URL
+	if credential.AccountName() == "devstoreaccount1" {
+		blobPrimaryURL, _ = url.Parse("http://127.0.0.1:10001/devstoreaccount1")
+	} else {
+		blobPrimaryURL, _ = url.Parse("https://" + credential.AccountName() + ".queue.core.windows.net/")
+	}
 	return azqueue.NewServiceURL(*blobPrimaryURL, pipeline), nil
 }
 
@@ -103,4 +113,4 @@ Set access condition and try op that always fails
 test failing ACL
 time to live - test that we send this properly
 visibility timeout
- */
+*/
