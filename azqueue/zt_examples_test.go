@@ -4,14 +4,14 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/Azure/azure-pipeline-go/pipeline"
 	"github.com/Azure/azure-storage-queue-go/azqueue"
-	"net/http"
-	"strconv"
 )
 
 // https://godoc.org/github.com/fluhus/godoc-tricks
@@ -616,7 +616,7 @@ func ExampleQueueURL_SetAccessPolicy() {
 }
 
 // This examples shows how to list the queues in an Azure Storage service account.
-func ExampleServiceClient_ListQueuesSegment() {
+func ExampleServiceURL_ListQueuesSegment() {
 	// From the Azure portal, get your Storage account file service URL endpoint.
 	accountName, accountKey := accountInfo()
 
@@ -648,9 +648,9 @@ func ExampleServiceClient_ListQueuesSegment() {
 		// Get a result segment starting with the queue indicated by the current Marker.
 		segmentResponse, err := serviceURL.ListQueuesSegment(ctx, marker,
 			azqueue.ListQueuesSegmentOptions{
-				Prefix:"zqueue",
+				Prefix: "zqueue",
 				Detail: azqueue.ListQueuesSegmentDetails{Metadata: true},
-		})
+			})
 		if err != nil {
 			log.Fatal(err)
 		}
