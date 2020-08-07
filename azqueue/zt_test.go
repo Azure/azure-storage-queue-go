@@ -32,7 +32,8 @@ func getGenericCredential(accountType string) (*azqueue.SharedKeyCredential, err
 	accountKeyEnvVar := accountType + "ACCOUNT_KEY"
 	accountName, accountKey := os.Getenv(accountNameEnvVar), os.Getenv(accountKeyEnvVar)
 	if accountName == "" || accountKey == "" {
-		// https://docs.microsoft.com/en-us/azure/storage/common/storage-use-emulator
+		// docker run -p 10000:10000 -p 10001:10001 mcr.microsoft.com/azure-storage/azurite
+		// See https://docs.microsoft.com/en-us/azure/storage/common/storage-use-azurite
 		accountName = "devstoreaccount1"
 		accountKey = "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw=="
 	}

@@ -4,17 +4,10 @@ services:
 go:
   - "1.13.x"
   - "1.14.x"
-env:
-  - DOCKER_COMPOSE_VERSION=1.26.2
-before_install:
-  - sudo rm /usr/local/bin/docker-compose
-  - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
-  - chmod +x docker-compose
-  - sudo mv docker-compose /usr/local/bin
 script:
   - export GO111MODULE=on
   - GOOS=linux go build ./azqueue
   - GOOS=darwin go build ./azqueue
   - GOOS=windows go build ./azqueue
-  - docker-compose up -d
+  - docker run -d -p 10000:10000 -p 10001:10001 mcr.microsoft.com/azure-storage/azurite
   - go test -race -short -cover -v ./azqueue
