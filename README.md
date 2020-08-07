@@ -13,25 +13,10 @@ This repository contains the open source Queue SDK for Go.
 ## Getting Started
 * If you don't already have it, install [the Go distribution](https://golang.org/dl/)
 * Get the SDK, with any method you prefer:
-    * Go Get: ```go get github.com/Azure/azure-storage-queue-go/azqueue```
-    * Dep: add ```github.com/Azure/azure-storage-queue-go``` to Gopkg.toml:
-        ```
-        [[constraint]]
-          version = "0.2.0"
-          name = "github.com/Azure/azure-storage-queue-go"
-        ```
-    * Module: simply import the SDK and Go will download it for you
+    * Go Get: `go get github.com/Azure/azure-storage-queue-go/azqueue`
+
 * Use the SDK:
-```import "github.com/Azure/azure-storage-queue-go/azqueue"```
-
-## Version Table
-* If you are looking to use a specific version of the Storage Service, please refer to the following table: 
-
-| Service Version | Corresponding SDK Version | Import Path                                                |
-|-----------------|---------------------------|------------------------------------------------------------|
-| 2017-07-29      | 0.1.0                     | github.com/Azure/azure-storage-queue-go/2017-07-29/azqueue |
-| 2018-03-28      | 0.2.0                     | github.com/Azure/azure-storage-queue-go/azqueue            |
-|                 |                           |                                                            |
+`import "github.com/Azure/azure-storage-queue-go/azqueue"`
 
 ## SDK Architecture
 * The Azure Storage SDK for Go provides APIs that map 1-to-1 with the 
