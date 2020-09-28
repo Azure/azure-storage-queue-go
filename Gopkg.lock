@@ -5,13 +5,12 @@
   name = "github.com/Azure/azure-pipeline-go"
   packages = ["pipeline"]
   revision = "7571e8eb0876932ab505918ff7ed5107773e5ee2"
-  version = "0.1.7"
+  version = "0.2.3"
 
 [[projects]]
   branch = "v1"
   name = "gopkg.in/check.v1"
   packages = ["."]
-  revision = "20d25e2804050c1cd24a7eea1e7a6447dd0e74ec"
 
 [solve-meta]
   analyzer-name = "dep"
