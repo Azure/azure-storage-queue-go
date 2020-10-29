@@ -1,0 +1,19 @@
+trigger:
+- master
+- dev
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- task: GoTool@0
+  inputs:
+    version: '1.15'
+- script: |
+    go build ./azqueue
+  displayName: 'Compile the SDK'
+- script: |
+    go test -race -short -cover -v ./azqueue
+  env:
+    ACCOUNT_NAME: $(ACCOUNT_NAME)
+    ACCOUNT_KEY: $(ACCOUNT_KEY)
