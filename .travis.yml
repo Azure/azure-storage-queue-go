@@ -1,9 +1,0 @@
-language: go
-go:
-- "1.15"
-script:
-- export GO111MODULE=on
-- GOOS=linux go build ./azqueue
-- GOOS=darwin go build ./azqueue
-- GOOS=windows go build ./azqueue
-- go test -race -short -cover -v ./azqueue
