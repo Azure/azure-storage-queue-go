@@ -2,10 +2,12 @@ package azqueue
 
 import (
 	"context"
+	"net/http"
 	"net/url"
 	"strings"
 
 	"fmt"
+
 	"github.com/Azure/azure-pipeline-go/pipeline"
 )
 
@@ -16,7 +18,7 @@ const (
 
 	// QueueMaxMessagesPeek indicates the maximum number of messages
 	// you can retrieve with each call to Peek (32).
-	QueueMaxMessagesPeek= 32
+	QueueMaxMessagesPeek = 32
 
 	// QueueMessageMaxBytes indicates the maximum number of bytes allowed for a message's UTF-8 text.
 	QueueMessageMaxBytes = 64 * 1024 // 64KB
@@ -95,6 +97,15 @@ func (q QueueURL) GetAccessPolicy(ctx context.Context) (*SignedIdentifiers, erro
 // For more information, see https://docs.microsoft.com/en-us/rest/api/storageservices/set-queue-acl.
 func (q QueueURL) SetAccessPolicy(ctx context.Context, permissions []SignedIdentifier) (*QueueSetAccessPolicyResponse, error) {
 	return q.client.SetAccessPolicy(ctx, permissions, nil, nil)
+}
+
+// Exists returns true if a queue exists.
+func (q QueueURL) Exists(ctx context.Context) (bool, error) {
+	r, err := q.GetProperties(ctx)
+	if r != nil && (r.StatusCode() == http.StatusOK || r.StatusCode() == http.StatusNotFound) {
+		return r.StatusCode() == http.StatusOK, nil
+	}
+	return false, err
 }
 
 // The AccessPolicyPermission type simplifies creating the permissions string for a queue's access policy.
