@@ -17,6 +17,8 @@ type PipelineOptions struct {
 
 	// Telemetry configures the built-in telemetry policy behavior.
 	Telemetry TelemetryOptions
+
+	HTTPSender Factory
 }
 
 // NewPipeline creates a Pipeline using the specified credentials and options.
@@ -38,6 +40,5 @@ func NewPipeline(c Credential, o PipelineOptions) pipeline.Pipeline {
 		NewRequestLogPolicyFactory(o.RequestLog),
 		pipeline.MethodFactoryMarker()) // indicates at what stage in the pipeline the method factory is invoked
 
-
-	return pipeline.NewPipeline(f, pipeline.Options{HTTPSender: nil, Log: o.Log})
+	return pipeline.NewPipeline(f, pipeline.Options{HTTPSender: o.HTTPSender, Log: o.Log})
 }
