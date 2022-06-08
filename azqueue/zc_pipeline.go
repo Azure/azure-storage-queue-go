@@ -18,7 +18,7 @@ type PipelineOptions struct {
 	// Telemetry configures the built-in telemetry policy behavior.
 	Telemetry TelemetryOptions
 
-	HTTPSender Factory
+	HTTPSender pipeline.Factory
 }
 
 // NewPipeline creates a Pipeline using the specified credentials and options.
